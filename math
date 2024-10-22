@@ -1,11 +1,72 @@
-And half JB egg roll of
-uhh GX an if
-dba ha see ya eh is the TV
-she good thx an
-if an if an if
+import random
+import operator
 
-cnfdjgkfnch
+# Math operations
+operations = {
+    operator.add: '+',
+    operator.sub: '-',
+    operator.mul: '*',
+    operator.truediv: '/'
+}
 
-fjtjxifozkdg
+def math_quiz():
+    print("Math Quiz Game")
+    print("----------------")
 
-zdjrjfktdkf
+    score = 0
+    total_questions = 10
+
+    for i in range(total_questions):
+        num1 = random.randint(1, 10)
+        num2 = random.randint(1, 10)
+        op = random.choice(list(operations.keys()))
+
+        # Ensure division by non-zero number
+        if op == operator.truediv and num2 == 0:
+            num2 = random.randint(1, 10)
+
+        correct_answer = op(num1, num2)
+
+        print(f"What is {num1} {operations[op]} {num2}?")
+        user_answer = input("Enter your answer: ")
+
+        try:
+            user_answer = float(user_answer)
+            if user_answer == correct_answer:
+                print("Correct!")
+                score += 1
+            else:
+                print(f"Sorry, the correct answer is {correct_answer}.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+    print(f"\nQuiz finished! Your final score: {score}/{total_questions}")
+
+def main():
+    math_quiz()
+    play_again = input("Play again? (yes/no): ")
+    if play_again.lower() == "yes":
+        main()
+
+if __name__ == "__main__":
+    main()
+```
+
+*Features:*
+
+1. Randomly generates math questions with addition, subtraction, multiplication, and division.
+2. Asks user for input and checks if the answer is correct.
+3. Keeps track of score and displays final score at the end.
+4. Allows user to play again.
+
+*Educational benefits:*
+
+1. Practices mental math skills.
+2. Improves understanding of basic arithmetic operations.
+3. Enhances problem-solving abilities.
+
+*Tips for teachers/parents:*
+
+1. Adjust the difficulty level by changing the range of numbers.
+2. Focus on specific operations (e.g., only multiplication) for targeted practice.
+3. Encourage students to explain their reasoning behind their answers.
