@@ -86,3 +86,37 @@ int main() {
 8. Removed unnecessary variables and code.
 
 *Note:* This code uses recursive function calls for "Play again" functionality, which may lead to stack overflow issues for excessive recursive calls. Consider using a loop instead.
+
+In the context of the "Play again" feature, using a loop instead of recursive function calls means replacing the recursive `main()` call with a loop that repeats the game until the user chooses to quit.
+
+Here's an updated version of the `main()` function using a loop:
+
+```
+int main() {
+    bool playAgain = true;
+    while (playAgain) {
+        mathQuiz();
+        char response;
+        std::cout << "Play again? (y/n): ";
+        std::cin >> response;
+        playAgain = (response == 'y' || response == 'Y');
+    }
+    return 0;
+}
+```
+
+_Benefits of using a loop:_
+
+1. Avoids potential stack overflow issues with recursive calls.
+2. Improves code readability and maintainability.
+3. Reduces function call overhead.
+
+_How it works:_
+
+1. The `while` loop continues as long as `playAgain` is `true`.
+2. Inside the loop, the game is played by calling `mathQuiz()`.
+3. After the game, the user is prompted to play again.
+4. If the user responds with 'y' or 'Y', `playAgain` remains `true`, and the loop repeats.
+5. If the user responds with 'n' or any other input, `playAgain` becomes `false`, and the loop exits.
+
+This approach is more efficient, scalable, and easier to understand than recursive function calls for this specific use case.
