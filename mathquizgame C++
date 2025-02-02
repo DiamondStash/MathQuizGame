@@ -120,3 +120,128 @@ _How it works:_
 5. If the user responds with 'n' or any other input, `playAgain` becomes `false`, and the loop exits.
 
 This approach is more efficient, scalable, and easier to understand than recursive function calls for this specific use case.
+
+
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <limits>
+#include <cmath>  // For fabs()
+
+// Math operations
+enum Operation { ADD, SUB, MUL, DIV };
+
+// Seed random generator once at program start
+void initRandom() {
+    static bool seeded = false;
+    if (!seeded) {
+        srand(time(0));
+        seeded = true;
+    }
+}
+
+char getOperationSymbol(Operation op) {
+    switch (op) {
+        case ADD: return '+';
+        case SUB: return '-';
+        case MUL: return '*';
+        case DIV: return '/';
+        default: throw std::invalid_argument("Invalid operation");
+    }
+}
+
+double performOperation(Operation op, double num1, double num2) {
+    switch (op) {
+        case ADD: return num1 + num2;
+        case SUB: return num1 - num2;
+        case MUL: return num1 * num2;
+        case DIV: 
+            if (num2 == 0) throw std::runtime_error("Division by zero");
+            return num1 / num2;
+        default: throw std::invalid_argument("Invalid operation");
+    }
+}
+
+void generateNumbers(Operation op, double& num1, double& num2) {
+    num1 = rand() % 10 + 1;
+    num2 = rand() % 10 + 1;
+    
+    // Ensure non-negative results for subtraction
+    if (op == SUB && num2 > num1) {
+        std::swap(num1, num2);
+    }
+    
+    // Ensure whole number results for division
+    if (op == DIV) {
+        num1 = num2 * (rand() % 5 + 1);  // Results in 1-5 times divisor
+    }
+}
+
+void mathQuiz() {
+    const int totalQuestions = 10;
+    int score = 0;
+    const double EPSILON = 0.001;  // For floating-point comparisons
+
+    std::cout << "\nMath Quiz Game\n";
+    std::cout << "Answer correctly to earn points!\n";
+    std::cout << "-------------------------------\n";
+
+    for (int i = 0; i < totalQuestions; ++i) {
+        Operation op = static_cast<Operation>(rand() % 4);
+        double num1, num2;
+        generateNumbers(op, num1, num2);
+
+        double correctAnswer = performOperation(op, num1, num2);
+        double userAnswer;
+        bool validInput = false;
+
+        std::cout << "\nQuestion " << (i+1) << "/" << totalQuestions << "\n";
+        std::cout << "What is " << num1 << " " << getOperationSymbol(op) << " " << num2 << "? ";
+
+        while (!validInput) {
+            if (!(std::cin >> userAnswer)) {
+                std::cout << "Invalid input! Please enter a number: ";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            } else {
+                validInput = true;
+            }
+        }
+
+        // Compare with tolerance for floating-point answers
+        if (op == DIV ? fabs(userAnswer - correctAnswer) < EPSILON 
+                      : userAnswer == correctAnswer) {
+            std::cout << "✓ Correct!\n";
+            score++;
+        } else {
+            std::cout << "✗ Wrong! The correct answer is " << correctAnswer << "\n";
+        }
+        
+        std::cout << "Current score: " << score << "/" << (i+1) << "\n";
+    }
+
+    std::cout << "\nQuiz finished! Final score: " << score << "/" << totalQuestions << "\n";
+    std::cout << "Percentage: " << (score * 100 / totalQuestions) << "%\n";
+}
+
+int main() {
+    initRandom();
+    bool playAgain = true;
+    
+    std::cout << "Welcome to the Math Quiz Game!\n";
+    
+    while (playAgain) {
+        mathQuiz();
+        
+        char response;
+        std::cout << "\nPlay again? (y/n): ";
+        std::cin >> response;
+        playAgain = (response == 'y' || response == 'Y');
+        
+        // Clear input buffer
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    
+    std::cout << "\nThanks for playing! Goodbye!\n";
+    return 0;
+}
