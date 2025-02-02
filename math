@@ -70,3 +70,112 @@ if __name__ == "__main__":
 1. Adjust the difficulty level by changing the range of numbers.
 2. Focus on specific operations (e.g., only multiplication) for targeted practice.
 3. Encourage students to explain their reasoning behind their answers.
+
+
+import random
+import operator
+import time
+
+class MathQuiz:
+    def __init__(self):
+        self.operations = {
+            operator.add: ('+', self._generate_add_sub),
+            operator.sub: ('-', self._generate_add_sub),
+            operator.mul: ('*', self._generate_mul),
+            operator.truediv: ('/', self._generate_div)
+        }
+        self.total_questions = 10
+        self.epsilon = 0.001  # For floating point comparisons
+
+    def _generate_add_sub(self, op):
+        a = random.randint(1, 20)
+        b = random.randint(1, 20)
+        if op == operator.sub and b > a:
+            a, b = b, a  # Ensure non-negative results
+        return a, b
+
+    def _generate_mul(self, _):
+        return random.randint(1, 10), random.randint(1, 10)
+
+    def _generate_div(self, _):
+        b = random.randint(1, 10)
+        a = b * random.randint(1, 10)  # Ensure whole number results
+        return a, b
+
+    def _get_operator(self):
+        op = random.choice(list(self.operations.keys()))
+        return op, self.operations[op][0]
+
+    def _validate_input(self, prompt):
+        while True:
+            try:
+                value = input(prompt).strip()
+                if value.lower() in ['exit', 'quit']:
+                    return None
+                return round(float(value), 3)
+            except ValueError:
+                print("Invalid input! Please enter a number (or 'exit' to quit).")
+
+    def _ask_question(self, question_num):
+        op, symbol = self._get_operator()
+        generate_numbers = self.operations[op][1]
+        a, b = generate_numbers(op)
+        
+        if op == operator.truediv:
+            correct_answer = a // b
+        else:
+            correct_answer = op(a, b)
+
+        print(f"\nQuestion {question_num}/{self.total_questions}")
+        print(f"What is {a} {symbol} {b}?")
+        
+        user_answer = self._validate_input("Your answer: ")
+        if user_answer is None:
+            return False  # Signal to exit
+        
+        if abs(user_answer - correct_answer) < self.epsilon:
+            print("✅ Correct!")
+            return True
+        else:
+            print(f"❌ Incorrect! The correct answer is {correct_answer}")
+            return False
+
+    def run(self):
+        print("\n" + " MATH QUIZ ".center(40, "="))
+        print("• Enter answers to 3 decimal places")
+        print("• Type 'exit' to quit early\n")
+        
+        score = 0
+        start_time = time.time()
+        
+        for q in range(1, self.total_questions + 1):
+            result = self._ask_question(q)
+            if result is False:  # User requested exit
+                break
+            if result:
+                score += 1
+            print(f"Current score: {score}/{q}")
+        
+        total_time = time.time() - start_time
+        self._show_results(score, total_time)
+
+    def _show_results(self, score, time_taken):
+        print("\n" + " RESULTS ".center(40, "-"))
+        print(f"Final Score: {score}/{self.total_questions}")
+        print(f"Percentage: {score/self.total_questions:.0%}")
+        print(f"Time Taken: {time_taken:.1f} seconds")
+        print(" " * 40)
+
+def main():
+    quiz = MathQuiz()
+    
+    while True:
+        quiz.run()
+        
+        response = input("\nPlay again? (yes/no): ").lower()
+        if response not in ['y', 'yes']:
+            print("\nThanks for playing! Goodbye!")
+            break
+
+if __name__ == "__main__":
+    main()
