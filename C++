@@ -83,3 +83,88 @@ int main() {
 7. Removed unnecessary variables and code.
 
 *Note:* This code doesn't implement a timeout feature like Python's `pyip.inputNum`. You can use `std::async` or `std::thread` to achieve similar functionality. However, this approach is more complex and might not be necessary for a simple math game.
+
+
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <stdexcept>
+#include <string>
+#include <limits>
+#include <iomanip> // For std::setprecision
+
+// Constants
+const std::string QUESTION_TYPES[] = {"+", "-", "*", "/", "**"};
+const int NUMBERS_RANGE_MIN = 1;
+const int NUMBERS_RANGE_MAX = 20;
+const int MAX_TIMEOUT = 10;
+
+// Function to generate random math equation
+std::pair<std::string, double> generateEquation() {
+    int num1 = rand() % (NUMBERS_RANGE_MAX - NUMBERS_RANGE_MIN + 1) + NUMBERS_RANGE_MIN;
+    int num2 = rand() % (NUMBERS_RANGE_MAX - NUMBERS_RANGE_MIN + 1) + NUMBERS_RANGE_MIN;
+    std::string operatorStr = QUESTION_TYPES[rand() % QUESTION_TYPES.size()];
+
+    double solution;
+    if (operatorStr == "+") {
+        solution = num1 + num2;
+    } else if (operatorStr == "-") {
+        solution = num1 - num2;
+    } else if (operatorStr == "*") {
+        solution = num1 * num2;
+    } else if (operatorStr == "/") {
+        if (num2 == 0) num2 = 1; // Avoid division by zero
+        solution = static_cast<double>(num1) / num2;
+    } else if (operatorStr == "**") {
+        solution = pow(num1, num2);
+    } else {
+        throw std::invalid_argument("Invalid operator");
+    }
+
+    return std::make_pair(std::to_string(num1) + " " + operatorStr + " " + std::to_string(num2), solution);
+}
+
+// Game loop function
+void gameLoop() {
+    int points = 0;
+    std::cout << "Welcome to the Math Quiz Game!\n";
+    std::cout << "Round down to one decimal place.\n";
+    std::cout << "Type 'stop' at any time to end the game.\n";
+
+    while (true) {
+        auto [equation, solution] = generateEquation();
+
+        std::string userAnswer;
+        std::cout << "What is " << equation << " equal to? ";
+        std::getline(std::cin, userAnswer);
+
+        if (userAnswer == "stop") {
+            std::cout << "Game over! Your final score: " << points << " points.\n";
+            break;
+        }
+
+        try {
+            double userAnswerDouble = std::stod(userAnswer);
+            // Round the solution to one decimal place for comparison
+            double roundedSolution = std::round(solution * 10) / 10;
+            double roundedUserAnswer = std::round(userAnswerDouble * 10) / 10;
+
+            if (roundedUserAnswer == roundedSolution) {
+                points++;
+                std::cout << "Correct! You now have " << points << " points.\n";
+            } else {
+                std::cout << "Incorrect! The correct answer was " << std::fixed << std::setprecision(1) << solution << ".\n";
+            }
+        } catch (const std::invalid_argument& e) {
+            std::cout << "Invalid input. Please enter a number.\n";
+        } catch (const std::out_of_range& e) {
+            std::cout << "The number you entered is out of range. Please try again.\n";
+        }
+    }
+}
+
+int main() {
+    srand(static_cast<unsigned int>(time(0))); // Seed random number generator
+    gameLoop();
+    return 0;
+}
