@@ -56,3 +56,119 @@ Changes made:
 4. Used f-strings for more readable string formatting.
 5. Added a `global` keyword to modify the `points` variable.
 6. Included a `if __name__ == "__main__":` block to ensure the game loop runs only when the script is executed directly.
+
+
+import math
+import operator
+import time
+from random import randint, choice
+import pyinputplus as pyip
+
+# Constants
+OPERATORS = {
+    '+': operator.add,
+    '-': operator.sub,
+    '*': operator.mul,
+    '/': operator.truediv,
+    '**': operator.pow
+}
+NUM_RANGE = (1, 20)
+MAX_ATTEMPTS = 3
+MAX_TIMEOUT = 15
+DECIMAL_PRECISION = 1
+
+def generate_problem() -> tuple:
+    """Generate a math problem with answer rounded to specified precision."""
+    a, b = randint(*NUM_RANGE), randint(*NUM_RANGE)
+    op_symbol = choice(list(OPERATORS.keys()))
+    
+    # Adjust numbers for specific operations
+    if op_symbol == '-':
+        a, b = max(a, b), min(a, b)  # Ensure non-negative results
+    elif op_symbol == '**':
+        b = randint(1, 3)  # Limit exponents to prevent huge numbers
+    elif op_symbol == '/':
+        a = a * b  # Ensure whole number results
+    
+    operation = OPERATORS[op_symbol]
+    result = operation(a, b)
+    rounded = round(result, DECIMAL_PRECISION)
+    
+    return f"{a} {op_symbol} {b}", rounded
+
+def get_user_answer(prompt: str) -> float | None:
+    """Get and validate user input with error handling."""
+    try:
+        answer = pyip.inputFloat(
+            prompt=prompt,
+            allowRegexes=[r'^stop$'],
+            lessThan=10**6,  # Prevent absurdly large inputs
+            greaterThan=-10**6,
+            limit=MAX_ATTEMPTS,
+            timeout=MAX_TIMEOUT,
+            precision=DECIMAL_PRECISION
+        )
+        return round(answer, DECIMAL_PRECISION)
+    except pyip.TimeoutException:
+        print("\nTime's up! Moving to next question.")
+        return None
+    except pyip.RetryLimitException:
+        print("\nToo many attempts. Moving to next question.")
+        return None
+    except pyip.ValidationException:
+        print("\nInvalid input detected. Moving to next question.")
+        return None
+
+def quiz_session() -> int:
+    """Run a complete quiz session and return final score."""
+    score = 0
+    start_time = time.time()
+    
+    print("\nMath Quiz".center(40, '-'))
+    print(f"• Round answers to {DECIMAL_PRECISION} decimal place")
+    print(f"• {MAX_ATTEMPTS} attempts per question")
+    print(f"• {MAX_TIMEOUT} seconds per question")
+    print("Type 'stop' to end game early\n")
+    
+    for question_num in range(1, 11):
+        problem, answer = generate_problem()
+        prompt = f"Q{question_num}: {problem} = ? "
+        
+        user_answer = get_user_answer(prompt)
+        if user_answer is None:
+            print(f"Answer: {answer}\n")
+            continue
+            
+        if user_answer == answer:
+            score += 1
+            print(f"✅ Correct! (Score: {score}/10)\n")
+        else:
+            print(f"❌ Incorrect! Answer: {answer}\n")
+    
+    total_time = time.time() - start_time
+    print(f"Final Score: {score}/10")
+    print(f"Time Taken: {math.ceil(total_time)} seconds")
+    return score
+
+def main():
+    print("Welcome to Math Quiz Master!".center(50, '='))
+    
+    while True:
+        quiz_session()
+        
+        try:
+            restart = pyip.inputYesNo(
+                prompt="\nPlay again? (y/n): ",
+                caseSensitive=False,
+                blank=True,
+                timeout=MAX_TIMEOUT
+            )
+            if restart != 'yes':
+                break
+        except pyip.TimeoutException:
+            break
+    
+    print("\nThanks for playing! Goodbye!")
+
+if __name__ == "__main__":
+    main()
